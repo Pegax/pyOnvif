@@ -4,6 +4,8 @@
 ## Pekka Jäppinen 2014
   
 import logging
+log = logging.getLogger(__name__)
+
 #for tester code
 import subprocess   
 import threading
