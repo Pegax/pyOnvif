@@ -16,6 +16,9 @@ setup(
     author_email='',
     url='https://github.com/Pegax/pyOnvif',
     install_requires=[],
+    extras_require={
+        'discovery':  ["WSDiscovery"]
+    }
     packages=[
         'pyonvif',
     ],
