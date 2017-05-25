@@ -18,7 +18,7 @@ setup(
     install_requires=[],
     extras_require={
         'discovery':  ["WSDiscovery"]
-    }
+    },
     packages=[
         'pyonvif',
     ],
