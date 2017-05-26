@@ -120,7 +120,6 @@ class OnvifCam():
       soapmsg=self.insertInEnvelope(fullmsg) 
     else:
       soapmsg=self.insertInEnvelope(self.insertInBody(bmsg))
-    print(soapmsg)
     self.conn.request("POST", self.cpath, soapmsg)
     resp = self.conn.getresponse().read()
     return resp
@@ -248,6 +247,6 @@ class OnvifCam():
     stream = '<Stream xmlns="http://www.onvif.org/ver10/schema">RTP-Unicast</Stream>'
     protocol = '<Protocol>UDP</Protocol>'
     transport='<Transport xmlns="http://www.onvif.org/ver10/schema">%s</Transport>' % (protocol)
-    streamsetup= '<StreamSetup>%s%s</StreamSetup>' % (stream,transport) 
+    streamsetup= '<StreamSetup>%s%s</StreamSetup>' % (stream, transport) 
     bmsg= '<GetStreamUri xmlns="http://www.onvif.org/ver10/media/wsdl">%s<ProfileToken>%s</ProfileToken></GetStreamUri>' % (streamsetup, self.profiletoken)
     return self.sendSoapMsg(bmsg)
