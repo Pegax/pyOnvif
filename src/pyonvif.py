@@ -177,7 +177,7 @@ class OnvifCam():
     profile = '<ProfileToken>%s</ProfileToken>' % (self.profiletoken)
     pantilt = '<PanTilt x="%s" y="%s" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/TranslationGenericSpace" xmlns="http://www.onvif.org/ver10/schema"/>' % (x, y)  
     pantilts ='<PanTilt x="%s" y="%s" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/GenericSpeedSpace" xmlns="http://www.onvif.org/ver10/schema"/>' % (xspeed,yspeed)
-    bmsg='<RelativeMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">%s<Translation>%s</Translation><Speed>%s</Speed></RelativeMove>' % (profiletoken, pantilt, pantilts )
+    bmsg='<RelativeMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">%s<Translation>%s</Translation><Speed>%s</Speed></RelativeMove>' % (profile, pantilt, pantilts )
     return self.sendSoapMsg(bmsg)
 
   def relativeMoveZoom(self, z, zspeed="0.5"):
