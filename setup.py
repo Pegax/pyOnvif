@@ -7,7 +7,7 @@ def get_file(fn):
 
 setup(
     name='pyOnvif',
-    version="1.0",
+    version="1.1",
     description='Simple Onvif camera client',
     long_description=(
         get_file('README.rst') + '\n\n' + get_file('HISTORY.rst')
