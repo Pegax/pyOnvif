@@ -34,7 +34,7 @@ class Tester():
     resp = self.onvif.Onvifdiscovery()
     self.camIP= resp[0]
     self.cpath=resp[1]
-    print "IP:%s,path:%s"%(self.camIP,self.cpath)
+    print("IP:%s,path:%s"%(self.camIP,self.cpath))
 
   def action_getpresets(self):
     resp = self.onvif.getPresets()
@@ -64,7 +64,7 @@ class Tester():
     print(psoap.prettify())
     a=psoap.find_all('tt:uri')
     self.videofeed= a[0].contents[0]
-    print self.videofeed
+    print(self.videofeed)
   def action_getprofiles(self):
     resp = self.onvif.getProfiles()
     psoap = BeautifulSoup(resp)
@@ -74,7 +74,7 @@ class Tester():
     self.proflist =[]
     for b in a:
       self.proflist.append (b['token'])
-    print self.proflist
+    print(self.proflist)
     self.profiletoken = self.proflist[0]
   def action_datetime(self):
     resp = self.onvif.getSystemDateAndTime()
