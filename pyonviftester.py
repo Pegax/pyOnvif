@@ -1,25 +1,25 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 ## -*- coding: utf-8 -*-
 ## Onvif camera testing controlling class that uses soap and wsdiscovery
 ## Pekka Jäppinen 2014
-  
+
 import logging
 log = logging.getLogger(__name__)
 
 #for tester code
-import subprocess   
+import subprocess
 import threading
 
 import argparse
 from pyonvif import OnvifCam
-from bs4 import BeautifulSoup 
-  
-  
+from bs4 import BeautifulSoup
+
+
 class Tester():
 
   def __init__(self,cam,ipaddr="",path=""):
 
-    self.onvif = cam 
+    self.onvif = cam
     self.onvif.setup(1,ipaddr,path)
 
   def command(self, action):
@@ -35,7 +35,7 @@ class Tester():
     self.camIP= resp[0]
     self.cpath=resp[1]
     print "IP:%s,path:%s"%(self.camIP,self.cpath)
-    
+
   def action_getpresets(self):
     resp = self.onvif.getPresets()
     psoap = BeautifulSoup(resp)
@@ -57,7 +57,7 @@ class Tester():
   def action_getservices(self):
     resp = self.onvif.getServices()
     psoap = BeautifulSoup(resp)
-    print(psoap.prettify())    
+    print(psoap.prettify())
   def action_getstreamuri(self):
     resp = self.onvif.getStreamUri()
     psoap = BeautifulSoup(resp)
@@ -72,7 +72,7 @@ class Tester():
     a=psoap.find_all('trt:profiles')
     #print "a", a
     self.proflist =[]
-    for b in a: 
+    for b in a:
       self.proflist.append (b['token'])
     print self.proflist
     self.profiletoken = self.proflist[0]
@@ -97,17 +97,15 @@ class Tester():
     p = Player(self.videofeed)
     p.start()
 
-#to run     
-class Player (threading.Thread): 
+#to run
+class Player (threading.Thread):
     def __init__(self,videofeed):
       self.video= videofeed
       threading.Thread.__init__(self)
     def run(self):
       subprocess.call (['ffplay',self.video],shell=False)
-      
-def main(args):  
-  global done
-  done = 0
+
+def main(args):
   command=[]
   ipaddr="192.68.100.30:888"
   path="/onvif/device_service"
@@ -115,12 +113,12 @@ def main(args):
   if args.command:
     command=args.command.split(",")
   if args.address:
-    ipaddr = args.address 
-  if args.path:   
-    path=args.path  
+    ipaddr = args.address
+  if args.path:
+    path=args.path
   if args.user:
-    un,pwd = args.user.split(",") 
-    cam.setAuth(un,pwd)  
+    un,pwd = args.user.split(",")
+    cam.setAuth(un,pwd)
   tester = Tester(cam,ipaddr,path)
   if args.video:
     tester.command("playstream")
