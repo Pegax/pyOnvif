@@ -22,9 +22,6 @@ setup(
     packages=[
         'pyonvif',
     ],
-    package_dir={
-        'pyonvif': 'src'
-    },
     include_package_data=True,
     license="GPLv3",
     zip_safe=False,
@@ -39,6 +36,6 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',        
+        'Programming Language :: Python :: 3.7',
     ],
 )

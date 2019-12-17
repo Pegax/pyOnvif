@@ -15,7 +15,7 @@ import base64
 import http.client
 from urllib.parse import urlparse
 
-from WSDiscovery import WSDiscovery
+from wsdiscovery import WSDiscovery
 
 
 logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ class OnvifCam():
     self.camIP = ip
     return self.camIP
 
-  def getCamIP(self): 
+  def getCamIP(self):
     return self.camIP
 
   def setProfileToken(self, token):
@@ -68,15 +68,15 @@ class OnvifCam():
       return self.profiles
     else:
       return []
-  
+
   def setCpath(self, path):
     self.cpath=path
 
   def getCpath(self):
     return self.cpath
-  
-  # Communication with camera  
-  
+
+  # Communication with camera
+
   def Onvifdiscovery(self, retries=3):
     "Use WS DIscovery to try & find available camera(s) a number of times"
     wsd = WSDiscovery()
@@ -101,9 +101,9 @@ class OnvifCam():
     self.camIP=selected.netloc
     self.cpath = selected.path
     self.conn = http.client.HTTPConnection(self.camIP)
-    return selected.netloc, selected.path   
- 
- 
+    return selected.netloc, selected.path
+
+
   # SOAP handling utility functions
 
   def insertInEnvelope(self, msg):
@@ -117,7 +117,7 @@ class OnvifCam():
   def sendSoapMsg(self, bmsg):
     if self.header:
       fullmsg= '%s%s' % (self.onvifauthheader(),self.insertInBody(bmsg))
-      soapmsg=self.insertInEnvelope(fullmsg) 
+      soapmsg=self.insertInEnvelope(fullmsg)
     else:
       soapmsg=self.insertInEnvelope(self.insertInBody(bmsg))
     self.conn.request("POST", self.cpath, soapmsg)
@@ -125,7 +125,7 @@ class OnvifCam():
     return resp
 
   def onvifauthheader(self):
-    created = datetime.datetime.now().isoformat().split(".")[0]   
+    created = datetime.datetime.now().isoformat().split(".")[0]
     pool = string.ascii_letters + string.digits + string.punctuation
     n64 = ''.join(SystemRandom().choice(pool) for _ in range(22))
     nonce = base64.b64encode(n64.encode('ascii')).decode("ascii")
@@ -138,9 +138,9 @@ class OnvifCam():
     usertoken= '<UsernameToken>%s%s%s%s</UsernameToken>' % (username, password, Nonce, created)
     header = '<s:Header><Security s:mustUnderstand="1" xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">%s</Security></s:Header>' % usertoken
     return header
-  
-  
-  # Onvif messages 
+
+
+  # Onvif messages
 
   def getSystemDateAndTime(self):
     bmsg = '<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>'
@@ -161,7 +161,7 @@ class OnvifCam():
   def getProfiles(self):
     bmsg='<GetProfiles xmlns="http://www.onvif.org/ver10/media/wsdl"/>'
     self.profiles=[]
-    return self.sendSoapMsg(bmsg)   
+    return self.sendSoapMsg(bmsg)
 
   def getDeviceInformation(self):
     bmsg='<GetDeviceInformation xmlns="http://www.onvif.org/ver10/device/wsdl"/>'
@@ -175,7 +175,7 @@ class OnvifCam():
 
   def relativeMove(self, x, y, xspeed="0.5", yspeed="0.5"):
     profile = '<ProfileToken>%s</ProfileToken>' % (self.profiletoken)
-    pantilt = '<PanTilt x="%s" y="%s" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/TranslationGenericSpace" xmlns="http://www.onvif.org/ver10/schema"/>' % (x, y)  
+    pantilt = '<PanTilt x="%s" y="%s" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/TranslationGenericSpace" xmlns="http://www.onvif.org/ver10/schema"/>' % (x, y)
     pantilts ='<PanTilt x="%s" y="%s" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/GenericSpeedSpace" xmlns="http://www.onvif.org/ver10/schema"/>' % (xspeed,yspeed)
     bmsg='<RelativeMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">%s<Translation>%s</Translation><Speed>%s</Speed></RelativeMove>' % (profile, pantilt, pantilts )
     return self.sendSoapMsg(bmsg)
@@ -191,15 +191,15 @@ class OnvifCam():
     profile = '<ProfileToken>%s</ProfileToken>' % (self.profiletoken)
     pantilt = '<PanTilt x="%s" y="%s" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace" xmlns="http://www.onvif.org/ver10/schema"/>' % (x,y)
     zoom = '<Zoom x="%s" space="http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace" xmlns="http://www.onvif.org/ver10/schema"/>' % (z)
-    bmsg='<AbsoluteMove xmlns="http://www.onvif.org/ver20/ptz/wsdl"><Position>%s%s</Position></AbsoluteMove>' % (profile,pantilt,zoom)   
+    bmsg='<AbsoluteMove xmlns="http://www.onvif.org/ver20/ptz/wsdl"><Position>%s%s</Position></AbsoluteMove>' % (profile,pantilt,zoom)
     return self.sendSoapMsg(bmsg)
 
   def continuousMove(self, x, y):
     profile = '<ProfileToken>%s</ProfileToken>' % (self.profiletoken)
-    pantilt = '<PanTilt x="%s" y="%s" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/VelocityGenericSpace" xmlns="http://www.onvif.org/ver10/schema"/>' % (x,y)  
+    pantilt = '<PanTilt x="%s" y="%s" space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/VelocityGenericSpace" xmlns="http://www.onvif.org/ver10/schema"/>' % (x,y)
     bmsg = ' <ContinuousMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">%s<Velocity>%s</Velocity></ContinuousMove>' % (profile, pantilt)
     return self.sendSoapMsg(bmsg)
-  
+
   def stopMove(self, ptstop="false", zstop="false"):
     profile = '<ProfileToken>%s</ProfileToken>' % (self.profiletoken)
     pantilt = '<PanTilt>%s</PanTilt>'%ptstop
@@ -207,7 +207,7 @@ class OnvifCam():
     bmsg = '<Stop xmlns="http://www.onvif.org/ver20/ptz/wsdl">%s%s%s</Stop>' % (profile, pantilt, zoom)
     return self.sendSoapMsg(bmsg)
 
-  def continuousZoom(self, z):  
+  def continuousZoom(self, z):
     profile = '<ProfileToken>%s</ProfileToken>' % (self.profiletoken)
     zoom = '<Zoom x="%s" space="http://www.onvif.org/ver10/tptz/ZoomSpaces/VelocityGenericSpace" xmlns="http://www.onvif.org/ver10/schema"/>' % (z)
     bmsg = '<ContinuousMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">%s<Velocity>%s</Velocity></ContinuousMove>' % (profile, zoom)
@@ -220,33 +220,33 @@ class OnvifCam():
     profile = '<ProfileToken>%s</ProfileToken>' % (self.profiletoken)
     preset  = '<PresetName%s</PresetName>' % (presetname)
     bmsg = '<SetPreset xmlns="http://www.onvif.org/ver20/ptz/wsdl"></SetPreset>' % (profile, preset)
-      
+
   def getPresets(self):
     bmsg= '<GetPresets xmlns="http://www.onvif.org/ver20/ptz/wsdl"><ProfileToken>%s</ProfileToken></GetPresets>' % (self.profiletoken)
     soapmsg=self.insertInEnvelope(self.insertInBody(bmsg))
-    self.conn.request("POST", self.cpath, soapmsg)    
-    return self.conn.getresponse().read() 
-  
+    self.conn.request("POST", self.cpath, soapmsg)
+    return self.conn.getresponse().read()
+
   def gotoPreset(self, presettoken, xspeed="0.5", yspeed="0.5", zspeed="0.5"):
     profile = '<ProfileToken>%s</ProfileToken>' % (self.profiletoken)
     preset  = '<PresetToken>%s</PresetToken>' % (presettoken)
     pantiltspeed= '<PanTilt x="%s" y="%s" xmlns="http://www.onvif.org/ver10/schema"/>' % (xspeed, yspeed)
     speeddetail = '<Speed>%s<Zoom x="%s" xmlns="http://www.onvif.org/ver10/schema"/></Speed>' % (pantiltspeed, zspeed)
     bmsg = '<GotoPreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">%s%s%s</GotoPreset>' % (profile, preset, speeddetail)
-    
+
   def removePreset(self, presettoken):
     profile = '<ProfileToken>%s</ProfileToken>' % (self.profiletoken)
     preset  = '<PresetToken>%s</PresetToken>' % (presettoken)
     bmsg = '<RemovePreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">%s%s</RemovePreset>' % (profile, preset)
-        
-  def getVideoSources(self):  
+
+  def getVideoSources(self):
     bmsg= '<GetVideoSources xmlns="http://www.onvif.org/ver10/media/wsdl"/>'
     return self.sendSoapMsg(bmsg)
-  
-  def getStreamUri(self):  
+
+  def getStreamUri(self):
     stream = '<Stream xmlns="http://www.onvif.org/ver10/schema">RTP-Unicast</Stream>'
     protocol = '<Protocol>UDP</Protocol>'
     transport='<Transport xmlns="http://www.onvif.org/ver10/schema">%s</Transport>' % (protocol)
-    streamsetup= '<StreamSetup>%s%s</StreamSetup>' % (stream, transport) 
+    streamsetup= '<StreamSetup>%s%s</StreamSetup>' % (stream, transport)
     bmsg= '<GetStreamUri xmlns="http://www.onvif.org/ver10/media/wsdl">%s<ProfileToken>%s</ProfileToken></GetStreamUri>' % (streamsetup, self.profiletoken)
     return self.sendSoapMsg(bmsg)
