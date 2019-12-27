@@ -3,6 +3,28 @@
 
 # System & service requests
 
+
+_SOAP_ENV = """
+<s:Envelope xmlns:s="{SOAP_ENV}">{content}</s:Envelope>
+"""
+
+_SOAP_BODY = """
+<s:Body xmlns:xsi="{XML_SCHEMA_INSTANCE}" xmlns:xsd="{XML_SCHEMA}">{content}</s:Body>
+"""
+
+_AUTH_HEADER = """
+<s:Header>
+    <Security s:mustUnderstand="1" xmlns="{WSS_SECEXT}">
+        <UsernameToken>
+            <Username>{username}</Username>
+            <Password Type="{WSS_PWDIGEST}">{pdigest}</Password>
+            <Nonce EncodingType="{WSS_BASE64BIN}">{nonce}</Nonce>
+            <Created xmlns="{WSS_SECUTIL}">{created}</Created>
+        </UsernameToken>
+    </Security>
+</s:Header>
+"""
+
 GET_SYSTEM_DATETIME = """
 <GetSystemDateAndTime xmlns="{OVF_DEVICE}"/>
 """
