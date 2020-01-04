@@ -51,7 +51,7 @@ GET_DEVICE_INFO = """
 
 GET_NODE = """
 <GetNode xmlns="{OVF_PTZ}">
-    <NodeToken>{node_token}</NodeToken>
+    <NodeToken>{node}</NodeToken>
 </GetNode>
 """
 
@@ -59,8 +59,8 @@ GET_NODE = """
 # Movements
 
 RELATIVE_MOVE = """
-<RelativeMove xmlns="{OVF_PTZ}">{profile}
-    <ProfileToken>{profile_token}</ProfileToken>
+<RelativeMove xmlns="{OVF_PTZ}">
+    <ProfileToken>{profile}</ProfileToken>
     <Translation>
         <PanTilt x="{x}" y="{y}" space="{OVF_PTS_TGS}" xmlns="{OVF_SCHEMA}"/>
     </Translation>
@@ -71,8 +71,8 @@ RELATIVE_MOVE = """
 """
 
 RELATIVE_MOVE_ZOOM = """
-<RelativeMove xmlns="{OVF_PTZ}">{profile}
-    <ProfileToken>{profile_token}</ProfileToken>
+<RelativeMove xmlns="{OVF_PTZ}">
+    <ProfileToken>{profile}</ProfileToken>
     <Translation>
         <Zoom x="{z}" space="{OVF_ZS_TGS}" xmlns="{OVF_SCHEMA}"/>
     </Translation>
@@ -83,9 +83,9 @@ RELATIVE_MOVE_ZOOM = """
 """
 
 ABSOLUTE_MOVE = """
-<AbsoluteMove xmlns="{OVF_PTZ}">{profile}
+<AbsoluteMove xmlns="{OVF_PTZ}">
     <Position>
-        <ProfileToken>{profile_token}</ProfileToken>
+        <ProfileToken>{profile}</ProfileToken>
         <PanTilt x="{x}" y="{y}" space="{OVF_PTS_PGS}" xmlns="{OVF_SCHEMA}"/>
         <Zoom x="{z}" space="{OVF_ZS_PGS}" xmlns="{OVF_SCHEMA}"/>
     </Position>
@@ -93,8 +93,8 @@ ABSOLUTE_MOVE = """
 """
 
 CONTINUOUS_MOVE = """
-<ContinuousMove xmlns="{OVF_PTZ}">{profile}
-    <ProfileToken>{profile_token}</ProfileToken>
+<ContinuousMove xmlns="{OVF_PTZ}">
+    <ProfileToken>{profile}</ProfileToken>
     <Velocity>
         <PanTilt x="{x}" y="{y}" space="{OVF_PTS_VGS}" xmlns="{OVF_SCHEMA}"/>
     </Velocity>
@@ -103,15 +103,15 @@ CONTINUOUS_MOVE = """
 
 STOP = """
 <Stop xmlns="{OVF_PTZ}">
-    <ProfileToken>{profile_token}</ProfileToken>
+    <ProfileToken>{profile}</ProfileToken>
     <PanTilt>{ptstop}</PanTilt>
     <Zoom>{zstop}</Zoom>
 </Stop>
 """
 
 CONTINUOUS_MOVE_ZOOM = """
-<ContinuousMove xmlns="{OVF_PTZ}">{profile}
-    <ProfileToken>{profile_token}</ProfileToken>
+<ContinuousMove xmlns="{OVF_PTZ}">
+    <ProfileToken>{profile}</ProfileToken>
     <Velocity>
         <Zoom x="{z}" space="{OVF_ZS_VGS}" xmlns="{OVF_SCHEMA}"/>
     </Velocity>
@@ -123,21 +123,21 @@ CONTINUOUS_MOVE_ZOOM = """
 
 SET_PRESET = """
     <SetPreset xmlns="{OVF_PTZ}">
-        <ProfileToken>{profile_token}</ProfileToken>
-        <PresetName>{preset_name}</PresetName>
+        <ProfileToken>{profile}</ProfileToken>
+        <PresetName>{preset}</PresetName>
     </SetPreset>
 """
 
 GET_PRESETS = """
 <GetPresets xmlns="{OVF_PTZ}">
-    <ProfileToken>{profile_token}</ProfileToken>
+    <ProfileToken>{profile}</ProfileToken>
 </GetPresets>
 """
 
 GOTO_PRESET = """
 <GotoPreset xmlns="{OVF_PTZ}">
-    <ProfileToken>{profile_token}</ProfileToken>
-    <PresetToken>{preset_token}</PresetToken>
+    <ProfileToken>{profile}</ProfileToken>
+    <PresetToken>{preset}</PresetToken>
     <Speed>
         <PanTilt x="{xspeed}" y="{yspeed}" xmlns="{OVF_SCHEMA}"/>
         <Zoom x="{zspeed}" xmlns="{OVF_SCHEMA}"/>
@@ -147,8 +147,8 @@ GOTO_PRESET = """
 
 REMOVE_PRESET = """
 <RemovePreset xmlns="{OVF_PTZ}">
-    <ProfileToken>{profile_token}</ProfileToken>
-    <PresetToken>{preset_token}</PresetToken>
+    <ProfileToken>{profile}</ProfileToken>
+    <PresetToken>{preset}</PresetToken>
 </RemovePreset>
 """
 
@@ -170,5 +170,5 @@ GET_STREAM_URI = """
             <Protocol>UDP</Protocol>
         </Transport>
     </StreamSetup>
-    <ProfileToken>{profile_token}</ProfileToken>
+    <ProfileToken>{profile}</ProfileToken>
 </GetStreamUri>"""
