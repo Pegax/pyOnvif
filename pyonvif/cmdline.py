@@ -1,5 +1,6 @@
-import re, ast, logging, argparse
-from pyonvif import messages, OnvifCam
+import re, ast, logging, argparse, sys, os
+from . import messages
+from .pyonvif import NoCameraFoundException, OnvifCam
 
 
 log = logging.getLogger(__name__)
@@ -26,20 +27,38 @@ def command():
    "the command-line client"
 
    parser = argparse.ArgumentParser()
-   parser.add_argument("command", metavar="CMD", default='', nargs='*', type=str, help="Onvif command to send")
    parser.add_argument("-a", "--address", help="camera address")
-   parser.add_argument("-p", "--path", help="command path", default="/onvif/device_service")
-   #parser.add_argument("-a", "--auth", help="user credentials (-a username,passwd)")
-   parser.add_argument("-c", "--commands", action='store_true', help="get available commands")
-   parser.add_argument("-l", "--loglevel", action='store_true', help="Log level")
+   parser.add_argument("-s", "--servicepath", help="service path", default="/onvif/device_service")
+   parser.add_argument("-p", "--profile", help="profile")
+   parser.add_argument("-u", "--user", help="username", default=None)
+   parser.add_argument("-v", "--verbose", action='store_true', help="Log level")
+
+   subparsers = parser.add_subparsers(title='onvif commands',
+                                      description='valid commands are listed below',
+                                      help='enter command name and parameters',
+                                      dest="_cmd")
+
+   cmds = get_commands()
+   for cmd, parms in cmds.items():
+      hlp = cmd.lower().replace('_', ' ').capitalize()
+      cmdparser = subparsers.add_parser(cmd, help=hlp)
+      for parm in parms:
+         cmdparser.add_argument(parm, type=str, help=parm + " argument")
 
    args = parser.parse_args()
-
-   if args.loglevel:
+   if args.verbose:
       logging.basicConfig(level=logging.DEBUG)
 
-   if args.commands:
-      cmds = get_commands()
-      print("Available commands & their arguments:\n")
-      for c, parms in cmds.items():
-         print("   " + c + ' ' + ', '.join(parms))
+   pwd = None
+   if args.user:
+      pwd = os.environ.get("CAM_PASSWD")
+      if not pwd:
+         sys.exit("no camera password given")
+
+   try:
+      c = OnvifCam(addr=args.address, pth=args.servicepath, prf=args.profile, usr=args.user, pwd=pwd)
+   except NoCameraFoundException:
+      sys.exit("No camera found!")
+
+   c.execute(args._cmd, **dict(args._get_kwargs()))
+   return

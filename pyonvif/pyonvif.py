@@ -14,42 +14,65 @@ import string
 import base64
 import http.client
 from urllib.parse import urlparse
-from .namespaces import *
-from .messages import _AUTH_HEADER, _SOAP_ENV, _SOAP_BODY
+from . import messages, namespaces
 from wsdiscovery import WSDiscovery
 
 
-logger = logging.getLogger(__name__)
+logging.basicConfig()
+logger = logging.getLogger("onvifcam")
+logger.setLevel(logging.INFO)
 
-CPATH = "/onvif/device_service"
+SPATH = "/onvif/device_service"
 PROF = "prof0"
 pool = string.ascii_letters + string.digits + string.punctuation
 
 
+nsmap = {k:v for k, v in namespaces.__dict__.items() if not k.startswith('__')}
+
+
+class NoCameraFoundException(Exception):
+   ""
+
 class OnvifCam():
 
-   def __init__(self):
+   def __init__(self, addr=None, pth=SPATH, prf=PROF, usr=None, pwd=None):
       self.x = 0
       self.movespeed = "0.5"
       self.zoomspeed = "0.5"
       self.profiles = []
+      self.profile = prf
+      self.username, self.password = usr, pwd
+      if usr and pwd:
+         masked = len(pwd) * '*'
+         logger.info(f"authorization credentials: {usr}:{masked}")
+      else:
+         logger.info("no authorization credentials given")
+      self.address = addr
+      self.path = pth
+      self.profile = prf
 
-   def setup(self, addr="", cpath=CPATH, profile=PROF, auth=None):
-      "create a connection to the camera"
 
-      self.profiletoken = profile
-
-      if auth:
-         self.username, self.password = auth
-
-      if not addr and cpath and profile:
+      if not addr:
+         logger.info("attempting to discover camera")
          found = self.discover()
          if not found:
-            raise Exception("no services discovered")
-      else:
-         self.camIP, self.cpath = found
+            raise NoCameraFoundException("no services discovered")
+         else:
+            self.address, self.path = found
 
-      self.conn = None
+      logger.info(f"attempting to connect to camera at {addr}")
+      self.connection = http.client.HTTPConnection(self.address)
+
+
+   def execute(self, command, **parms):
+      tmpl = getattr(messages, command)
+      parms.update(namespaces.__dict__)
+      try:
+         result = tmpl.format(**parms)
+      except KeyError as exc:
+         logger.error("not making Onvif {command}: missing parameter: {exc.args[0]}")
+      else:
+         self.sendSoapMsg(result)
 
 
    def discover(self, attempts=3):
@@ -77,14 +100,20 @@ class OnvifCam():
       return (found.netloc, found.path) if found else None
 
    def sendSoapMsg(self, bmsg):
-      body = SOAP_BODY.format(content=bmsg)
+      body = messages._SOAP_BODY.format(content=bmsg, **nsmap)
       if self.username and self.password:
          body = self.getAuthHeader() + body
-      soapmsg = SOAP_ENV.format(content=body)
-      if not self.conn:
-         self.conn = http.client.HTTPConnection(self.camIP)
-      self.conn.request("POST", self.cpath, soapmsg)
-      resp = self.conn.getresponse().read()
+      soapmsg = messages._SOAP_ENV.format(content=body, **nsmap)
+      if not self.connection:
+         self.connection = http.client.HTTPConnection(self.address)
+
+      try:
+         self.connection.request("POST", self.path, soapmsg)
+      except ConnectionRefusedError:
+         logger.error("cannot connect")
+         return None
+
+      resp = self.connection.getresponse().read()
       return resp
 
    def getAuthHeader(self):
@@ -93,7 +122,11 @@ class OnvifCam():
       nonce = base64.b64encode(n64.encode('ascii')).decode("ascii")
       base = (n64 + created + self.password).encode("ascii")
       pdigest= base64.b64encode(sha1(base).digest()).decode("ascii")
-      return AUTH_HEADER.format(**locals())
+      parms = {}
+      parms.update(**nsmap)
+      username = self.username
+      parms.update(**locals())
+      return messages._AUTH_HEADER.format(**parms)
 
 
 
