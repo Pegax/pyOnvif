@@ -1,4 +1,5 @@
 import re, ast, logging, argparse, sys, os
+from xml.dom import minidom
 from . import messages
 from .pyonvif import NoCameraFoundException, OnvifCam
 
@@ -60,5 +61,11 @@ def command():
    except NoCameraFoundException:
       sys.exit("No camera found!")
 
-   c.execute(args._cmd, **dict(args._get_kwargs()))
-   return
+   result = c.execute(args._cmd, **dict(args._get_kwargs()))
+   if result:
+      tree = minidom.parseString(result)
+      body = tree.getElementsByTagName("SOAP-ENV:Body")[0]
+      for n in body.childNodes:
+         print(n.toprettyxml())
+      return
+
