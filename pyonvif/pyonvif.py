@@ -58,10 +58,10 @@ class OnvifCam():
          if not found:
             raise NoCameraFoundException("no services discovered")
          else:
-            self.address, self.path = found
+            self.address, self.port, self.path = found
 
-      logger.info(f"attempting to connect to camera at {addr}")
-      self.connection = http.client.HTTPConnection(self.address)
+      logger.info(f"attempting to connect to camera at {self.address}:{self.port}")
+      self.connection = http.client.HTTPConnection(self.address, port=self.port)
 
 
    def execute(self, command, **parms):
@@ -72,7 +72,8 @@ class OnvifCam():
       except KeyError as exc:
          logger.error("not making Onvif {command}: missing parameter: {exc.args[0]}")
       else:
-         self.sendSoapMsg(result)
+         response = self.sendSoapMsg(result)
+         return response
 
 
    def discover(self, attempts=3):
@@ -90,14 +91,15 @@ class OnvifCam():
          for service in found:
             url = urlparse(service.getXAddrs()[0])
             if "onvif" not in url.path:
-               logger.debug("not an Onvif service path: %s", url.path)
+               logger.warning("not an Onvif service path: %s", url.path)
             else:
                found = url
+               logger.info(f"discovered onvif service at {found.netloc}{found.path}")
                break
 
          attempts_left -= 1
 
-      return (found.netloc, found.path) if found else None
+      return (found.hostname, found.port or 80, found.path) if found else None
 
    def sendSoapMsg(self, bmsg):
       body = messages._SOAP_BODY.format(content=bmsg, **nsmap)
@@ -113,8 +115,11 @@ class OnvifCam():
          logger.error("cannot connect")
          return None
 
-      resp = self.connection.getresponse().read()
-      return resp
+      resp = self.connection.getresponse()
+      if resp.status is not 200:
+         logger.error("failure: %s %s", resp.status, resp.reason)
+      else:
+         return resp.read()
 
    def getAuthHeader(self):
       created = datetime.datetime.now().isoformat().split(".")[0]
