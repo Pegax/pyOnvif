@@ -1,4 +1,4 @@
-import re, ast, logging, argparse, sys, os
+import re, ast, logging, argparse, os
 from xml.dom import minidom
 from . import messages
 from .pyonvif import NoCameraFoundException, OnvifCam
@@ -47,6 +47,11 @@ def command():
          cmdparser.add_argument(parm, type=str, help=parm + " argument")
 
    args = parser.parse_args()
+
+   if not args._cmd:
+      parser.print_help()
+      parser.exit()
+
    if args.verbose:
       logging.basicConfig(level=logging.DEBUG)
 
@@ -54,12 +59,12 @@ def command():
    if args.user:
       pwd = os.environ.get("CAM_PASSWD")
       if not pwd:
-         sys.exit("no camera password given")
+         parser.exit(message="no camera password given\n")
 
    try:
       c = OnvifCam(addr=args.address, pth=args.servicepath, prf=args.profile, usr=args.user, pwd=pwd)
    except NoCameraFoundException:
-      sys.exit("No camera found!")
+      parser.exit(message="no camera found\n")
 
    result = c.execute(args._cmd, **dict(args._get_kwargs()))
    if result:
