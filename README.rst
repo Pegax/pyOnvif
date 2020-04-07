@@ -9,6 +9,6 @@ WS-Discovery support can also be installed by including the 'discovery' extra, a
 
     pip install pyonvif[discovery]
 
-For command-line usage instructions run:
+For command-line usage instructions run::
 
     pyonvif -h
