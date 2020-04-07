@@ -11,7 +11,6 @@ import argparse
 import logging
 from random import SystemRandom
 import string
-import base64
 import http.client
 from urllib.parse import urlparse
 from . import messages, namespaces
@@ -35,7 +34,11 @@ class NoCameraFoundException(Exception):
 
 class OnvifCam():
 
-   def __init__(self, addr=None, pth=SPATH, prf=PROF, usr=None, pwd=None):
+   def __init__(self, addr=None, port=80, pth=SPATH, prf=PROF, usr=None, pwd=None, basicauth=False, verbose=None):
+
+      if verbose:
+         logger.setLevel(logging.DEBUG)
+
       self.x = 0
       self.movespeed = "0.5"
       self.zoomspeed = "0.5"
@@ -48,9 +51,10 @@ class OnvifCam():
       else:
          logger.info("no authorization credentials given")
       self.address = addr
+      self.port = port
       self.path = pth
       self.profile = prf
-
+      self.basicauth = basicauth
 
       if not addr:
          logger.info("attempting to discover camera")
@@ -103,20 +107,28 @@ class OnvifCam():
 
    def sendSoapMsg(self, bmsg):
       body = messages._SOAP_BODY.format(content=bmsg, **nsmap)
+      hdrs = {}
       if self.username and self.password:
-         body = self.getAuthHeader() + body
+         if self.basicauth:
+            auth_plaintext = f"{self.username}:{self.password}".encode("ascii")
+            auth_encoded = base64.b64encode(auth_plaintext).decode("ascii")
+            hdrs = {"Authorization": "Basic " + auth_encoded}
+         else:
+            body = self.getAuthHeader() + body
       soapmsg = messages._SOAP_ENV.format(content=body, **nsmap)
       if not self.connection:
          self.connection = http.client.HTTPConnection(self.address)
 
       try:
-         self.connection.request("POST", self.path, soapmsg)
+         self.connection.request("POST", self.path, soapmsg, headers=hdrs)
       except ConnectionRefusedError:
          logger.error("cannot connect")
          return None
 
+      logger.debug(soapmsg)
+
       resp = self.connection.getresponse()
-      if resp.status is not 200:
+      if resp.status != 200:
          logger.error("failure: %s %s", resp.status, resp.reason)
       else:
          return resp.read()
