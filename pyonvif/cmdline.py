@@ -28,7 +28,7 @@ def command():
    "the command-line client"
 
    parser = argparse.ArgumentParser()
-   parser.add_argument("-a", "--address", help="camera address")
+   parser.add_argument("-a", "--address", help="camera address (and optionally :port)")
    parser.add_argument("-s", "--servicepath", help="service path", default="/onvif/device_service")
    parser.add_argument("-p", "--profile", help="profile")
    parser.add_argument("-u", "--user", help="username", default=None)
@@ -57,12 +57,19 @@ def command():
 
    pwd = None
    if args.user:
-      pwd = os.environ.get("CAM_PASSWD")
+      pwd = os.environ.get("CAMERA_PASSWORD")
       if not pwd:
-         parser.exit(message="no camera password given\n")
+         parser.exit(message="no password; please add it as CAMERA_PASSWORD to shell environment\n")
 
    try:
-      c = OnvifCam(addr=args.address, pth=args.servicepath, prf=args.profile, usr=args.user, pwd=pwd)
+      addr, port = args.address.split(':')
+   except:
+      addr = args.address
+      port = 80
+
+   try:
+      c = OnvifCam(addr=addr, port=port, pth=args.servicepath, prf=args.profile, usr=args.user, pwd=pwd,\
+                   verbose=args.verbose)
    except NoCameraFoundException:
       parser.exit(message="no camera found\n")
 
