@@ -7,7 +7,7 @@ def get_file(fn):
 
 setup(
     name='pyOnvif',
-    version="1.0",
+    version="1.1",
     description='Simple Onvif camera client',
     long_description=(
         get_file('README.rst') + '\n\n' + get_file('HISTORY.rst')
@@ -22,9 +22,6 @@ setup(
     packages=[
         'pyonvif',
     ],
-    package_dir={
-        'pyonvif': 'src'
-    },
     include_package_data=True,
     license="GPLv3",
     zip_safe=False,
@@ -39,6 +36,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',        
+        'Programming Language :: Python :: 3.7',
     ],
+    entry_points = {'console_scripts': ['pyonvif=pyonvif.cmdline:command']}
 )
